@@ -61,7 +61,12 @@ function __bobthefish_basename -d 'basically basename, but faster'
 end
 
 function __bobthefish_dirname -d 'basically dirname, but faster'
-    string replace -r '/[^/]+/?$' '' -- $argv
+    set -l has_slash (string match -r '/' -- $argv)
+    if [ -z $has_slash ]
+        echo '.'
+    else
+        string replace -r '/[^/]+/?$' '' -- $argv
+    end
 end
 
 function __bobthefish_pwd -d 'Get a normalized $PWD'
@@ -130,7 +135,11 @@ function __bobthefish_pretty_parent -S -a child_dir -d 'Print a parent directory
         return
     end
 
-    string replace -ar '(\.?[^/]{'"$fish_prompt_pwd_dir_length"'})[^/]*/' '$1/' "$parent_dir/"
+    if [ $parent_dir = '.' ]
+      return
+    else
+      string replace -ar '(\.?[^/]{'"$fish_prompt_pwd_dir_length"'})[^/]*/' '$1/' "$parent_dir/"
+    end
 end
 
 function __bobthefish_ignore_vcs_dir -a real_pwd -d 'Check whether the current directory should be ignored as a VCS segment'
@@ -357,7 +366,7 @@ function __bobthefish_start_segment -S -d 'Start a prompt segment'
     set __bobthefish_current_bg $bg
 end
 
-function __bobthefish_path_segment -S -a segment_dir -d 'Display a shortened form of a directory'
+function __bobthefish_path_segment -S -a segment_dir -d 'Display a shortened form of a directory in new segment'
     set -l segment_color $color_path
     set -l segment_basename_color $color_path_basename
 
@@ -367,7 +376,10 @@ function __bobthefish_path_segment -S -a segment_dir -d 'Display a shortened for
     end
 
     __bobthefish_start_segment $segment_color
+    __bobthefish_shorten_path $segment_dir
+end
 
+function __bobthefish_shorten_path -S -a segment_dir -d 'Display a shortened form of a directory'
     set -l directory
     set -l parent
 
@@ -1061,8 +1073,7 @@ function __bobthefish_prompt_git -S -a git_root_dir -a real_pwd -d 'Display the 
             else
                 __bobthefish_start_segment $color_path_nowrite
             end
-
-            echo -ns $project_pwd ' '
+            __bobthefish_shorten_path $project_pwd
         end
         return
     end
