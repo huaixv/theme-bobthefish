@@ -1025,14 +1025,14 @@ function __bobthefish_prompt_git -S -a git_root_dir -a real_pwd -d 'Display the 
     if [ "$theme_display_git_dirty" != 'no' ]
         set -l show_dirty (command git config --bool bash.showDirtyState 2>/dev/null)
         if [ "$show_dirty" != 'false' ]
-            set dirty (command git diff --no-ext-diff --quiet --exit-code 2>/dev/null; or echo -n "$git_dirty_glyph")
+            set dirty (command git status -s 2>/dev/null | cut -c 2 | grep -e "M" -e "?">/dev/null; and echo -n "$git_dirty_glyph")
             if [ "$dirty" -a "$theme_display_git_dirty_verbose" = 'yes' ]
                 set dirty "$dirty"(__bobthefish_git_dirty_verbose)
             end
         end
     end
 
-    set -l staged (command git diff --cached --no-ext-diff --quiet --exit-code 2>/dev/null; or echo -n "$git_staged_glyph")
+    set -l staged (command git status -s 2>/dev/null | cut -c 1 | grep -e "A" -e "M">/dev/null; and echo -n "$git_staged_glyph")
     set -l stashed (__bobthefish_git_stashed)
     set -l ahead (__bobthefish_git_ahead)
 
